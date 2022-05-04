@@ -70,6 +70,7 @@
 #include <sensor_msgs/distortion_models.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <sensor_msgs/TimeReference.h>
 #include <stereo_msgs/DisparityImage.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -452,6 +453,7 @@ private:
     ros::Publisher mPubTempL;
     ros::Publisher mPubTempR;
     ros::Publisher mPubCamImuTransf;
+    ros::Publisher mPubImuTimeRef;
 
     ros::Publisher mPubMarker; // Publisher for Rviz markers
     ros::Publisher mPubPlane; // Publisher for detected planes

@@ -356,6 +356,7 @@ void ZEDWrapperNodelet::onInit()
     std::string imu_topic_raw;
     std::string imu_temp_topic;
     std::string imu_mag_topic;
+    std::string imu_time_ref_topic;
     // std::string imu_mag_topic_raw;
     std::string pressure_topic;
     std::string temp_topic_root = "temperature";
@@ -374,6 +375,7 @@ void ZEDWrapperNodelet::onInit()
         imu_temp_topic = temp_topic_root + "/" + imuTopicRoot;
         imu_mag_topic = imuTopicRoot + "/" + imu_topic_mag_name;
         // imu_mag_topic_raw = imuTopicRoot + "/" + imu_topic_mag_raw_name;
+        imu_time_ref_topic = imuTopicRoot + "/time_ref";
         pressure_topic = /*imuTopicRoot + "/" +*/ pressure_topic_name;
     }
 
@@ -529,6 +531,8 @@ void ZEDWrapperNodelet::onInit()
             NODELET_INFO_STREAM("Advertised on topic " << mPubTempL.getTopic());
             mPubTempR = mNhNs.advertise<sensor_msgs::Temperature>(temp_topic_right, 1);
             NODELET_INFO_STREAM("Advertised on topic " << mPubTempR.getTopic());
+            mPubImuTimeRef = mNhNs.advertise<sensor_msgs::TimeReference>(imu_time_ref_topic, 1);
+            NODELET_INFO_STREAM("Advertised on topic " << mPubImuTimeRef.getTopic());
         }
 
         // Publish camera imu transform in a latched topic
@@ -3106,6 +3110,16 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
 
         sensors_data_published = true;
         mPubImu.publish(imuMsg);
+
+        
+        // Publish Imu Time Reference message
+        sensor_msgs::TimeReference ImuTimeRefMsg;
+        ImuTimeRefMsg.header.stamp = ros::Time::now();
+        ImuTimeRefMsg.header.frame_id = mImuFrameId;
+        ImuTimeRefMsg.time_ref.fromNSec(sens_data.imu.timestamp.getNanoseconds());
+
+        mPubImuTimeRef.publish(ImuTimeRefMsg);
+        
     } /*else {
         NODELET_DEBUG("No new IMU DATA");
     }*/
