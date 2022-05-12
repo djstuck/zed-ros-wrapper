@@ -3057,7 +3057,7 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
 
         sensor_msgs::ImuPtr imuMsg = boost::make_shared<sensor_msgs::Imu>();
 
-        imuMsg->header.stamp = ts_imu;
+        imuMsg->header.stamp = ros::Time::now();
 
 #ifdef DEBUG_SENS_TS
         static ros::Time old_ts;
@@ -3114,7 +3114,7 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         
         // Publish Imu Time Reference message
         sensor_msgs::TimeReference ImuTimeRefMsg;
-        ImuTimeRefMsg.header.stamp = ros::Time::now();
+        ImuTimeRefMsg.header.stamp = imuMsg->header.stamp;
         ImuTimeRefMsg.header.frame_id = mImuFrameId;
         ImuTimeRefMsg.time_ref = sl_tools::slTime2Ros(sens_data.imu.timestamp);
 
