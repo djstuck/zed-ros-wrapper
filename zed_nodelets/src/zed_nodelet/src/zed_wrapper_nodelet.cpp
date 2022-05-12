@@ -3116,7 +3116,7 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         sensor_msgs::TimeReference ImuTimeRefMsg;
         ImuTimeRefMsg.header.stamp = ros::Time::now();
         ImuTimeRefMsg.header.frame_id = mImuFrameId;
-        ImuTimeRefMsg.time_ref.fromNSec(sens_data.imu.timestamp.getNanoseconds());
+        ImuTimeRefMsg.time_ref = sl_tools::slTime2Ros(sens_data.imu.timestamp);
 
         mPubImuTimeRef.publish(ImuTimeRefMsg);
         
