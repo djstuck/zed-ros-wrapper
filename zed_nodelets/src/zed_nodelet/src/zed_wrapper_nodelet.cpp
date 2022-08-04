@@ -3114,9 +3114,9 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         
         // Publish Imu Time Reference message
         sensor_msgs::TimeReference ImuTimeRefMsg;
-        ImuTimeRefMsg.header.stamp = imuMsg->header.stamp;
+        ImuTimeRefMsg.header.stamp = sens_data.imu.timestamp;
         ImuTimeRefMsg.header.frame_id = mImuFrameId;
-        ImuTimeRefMsg.time_ref = sl_tools::slTime2Ros(sens_data.imu.timestamp);
+        ImuTimeRefMsg.time_ref = sl_tools::slTime2Ros(imuMsg->header.stamp);
 
         mPubImuTimeRef.publish(ImuTimeRefMsg);
         
