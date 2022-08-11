@@ -3053,13 +3053,14 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
     } /*else {
         NODELET_DEBUG("No new MAG. DATA");
     }*/
-
+    ros::Time timeRefHeaderStamp;
     if (imu_SubNumber > 0 && new_imu_data) {
         lastTs_imu = ts_imu;
 
         sensor_msgs::ImuPtr imuMsg = boost::make_shared<sensor_msgs::Imu>();
 
         imuMsg->header.stamp = ros::Time::now();
+        timeRefHeaderStamp = imuMsg->header.stamp;
 
 #ifdef DEBUG_SENS_TS
         static ros::Time old_ts;
@@ -3070,7 +3071,6 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
             old_ts = imuMsg->header.stamp;
         }
 #endif
-
         imuMsg->header.frame_id = mImuFrameId;
 
         imuMsg->orientation.x = sens_data.imu.pose.getOrientation()[0];
@@ -3113,14 +3113,7 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         sensors_data_published = true;
         mPubImu.publish(imuMsg);
 
-        
-        // Publish Imu Time Reference message
-        sensor_msgs::TimeReference ImuTimeRefMsg;
-        ImuTimeRefMsg.header.stamp = sens_data.imu.timestamp;
-        ImuTimeRefMsg.header.frame_id = mImuFrameId;
-        ImuTimeRefMsg.time_ref = sl_tools::slTime2Ros(imuMsg->header.stamp);
 
-        mPubImuTimeRef.publish(ImuTimeRefMsg);
         
     } /*else {
         NODELET_DEBUG("No new IMU DATA");
@@ -3131,7 +3124,8 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
 
         sensor_msgs::ImuPtr imuRawMsg = boost::make_shared<sensor_msgs::Imu>();
 
-        imuRawMsg->header.stamp = ts_imu;
+        imuRawMsg->header.stamp = ros::Time::now();
+        timeRefHeaderStamp = imuRawMsg->header.stamp;
         imuRawMsg->header.frame_id = mImuFrameId;
         imuRawMsg->angular_velocity.x = sens_data.imu.angular_velocity[0] * DEG2RAD;
         imuRawMsg->angular_velocity.y = sens_data.imu.angular_velocity[1] * DEG2RAD;
@@ -3164,6 +3158,17 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         imuRawMsg->orientation_covariance[0] = -1;
         sensors_data_published = true;
         mPubImuRaw.publish(imuRawMsg);
+    }
+    
+    if((imu_RawSubNumber > 0 || imu_SubNumber > 0) && new_imu_data)
+    {
+        // Publish Imu Time Reference message
+        sensor_msgs::TimeReference ImuTimeRefMsg;
+        ImuTimeRefMsg.header.stamp = timeRefHeaderStamp;
+        ImuTimeRefMsg.header.frame_id = mImuFrameId;
+        ImuTimeRefMsg.time_ref = sl_tools::slTime2Ros(sens_data.imu.timestamp);
+        mPubImuTimeRef.publish(ImuTimeRefMsg);
+       // ROS_INFO("publishing time_ref");
     }
 
     // ----> Update Diagnostic
