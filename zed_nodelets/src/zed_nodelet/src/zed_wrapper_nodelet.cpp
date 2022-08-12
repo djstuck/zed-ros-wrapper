@@ -2878,6 +2878,10 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         }
     }
 
+    // ros::Time equivalent of when the sensor messages are recieved
+    // This is the header timestamp for all sensor messages, i.e. for /imu/data and /imu/data_raw
+    ros::Time packetTime = ros::Time::now();
+
     if (t != ros::Time(0)) {
         ts_imu = t;
         ts_baro = t;
@@ -3053,14 +3057,14 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
     } /*else {
         NODELET_DEBUG("No new MAG. DATA");
     }*/
-    ros::Time timeRefHeaderStamp;
+    // ros::Time timeRefHeaderStamp;
     if (imu_SubNumber > 0 && new_imu_data) {
         lastTs_imu = ts_imu;
 
         sensor_msgs::ImuPtr imuMsg = boost::make_shared<sensor_msgs::Imu>();
 
-        imuMsg->header.stamp = ros::Time::now();
-        timeRefHeaderStamp = imuMsg->header.stamp;
+        // timeRefHeaderStamp = imuMsg->header.stamp;
+        imuMsg->header.stamp = packetTime;
 
 #ifdef DEBUG_SENS_TS
         static ros::Time old_ts;
@@ -3114,7 +3118,6 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         mPubImu.publish(imuMsg);
 
 
-        
     } /*else {
         NODELET_DEBUG("No new IMU DATA");
     }*/
@@ -3124,8 +3127,10 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
 
         sensor_msgs::ImuPtr imuRawMsg = boost::make_shared<sensor_msgs::Imu>();
 
-        imuRawMsg->header.stamp = ros::Time::now();
-        timeRefHeaderStamp = imuRawMsg->header.stamp;
+        // imuRawMsg->header.stamp = ros::Time::now();
+        // timeRefHeaderStamp = imuRawMsg->header.stamp;
+        imuRawMsg->header.stamp = packetTime;
+
         imuRawMsg->header.frame_id = mImuFrameId;
         imuRawMsg->angular_velocity.x = sens_data.imu.angular_velocity[0] * DEG2RAD;
         imuRawMsg->angular_velocity.y = sens_data.imu.angular_velocity[1] * DEG2RAD;
@@ -3159,12 +3164,15 @@ void ZEDWrapperNodelet::publishSensData(ros::Time t)
         sensors_data_published = true;
         mPubImuRaw.publish(imuRawMsg);
     }
-    
+
     if((imu_RawSubNumber > 0 || imu_SubNumber > 0) && new_imu_data)
     {
         // Publish Imu Time Reference message
         sensor_msgs::TimeReference ImuTimeRefMsg;
-        ImuTimeRefMsg.header.stamp = timeRefHeaderStamp;
+
+        // ImuTimeRefMsg.header.stamp = timeRefHeaderStamp;
+        ImuTimeRefMsg.header.stamp = packetTime;
+
         ImuTimeRefMsg.header.frame_id = mImuFrameId;
         ImuTimeRefMsg.time_ref = sl_tools::slTime2Ros(sens_data.imu.timestamp);
         mPubImuTimeRef.publish(ImuTimeRefMsg);
@@ -3748,7 +3756,7 @@ void ZEDWrapperNodelet::device_poll_thread_func()
             }
 
             // Note: in SVO mode the TF must not be broadcasted at the same frequency of the IMU data to avoid timestamp issues
-            if (mZedRealCamModel == sl::MODEL::ZED || mSvoMode) { 
+            if (mZedRealCamModel == sl::MODEL::ZED || mSvoMode) {
                 // Publish pose tf only if enabled
                 if (mPublishTf) {
                     // Note, the frame is published, but its values will only change if
